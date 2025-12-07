@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Рынок труда — Прототип UI</title>
+<style>
+  :root{
+  --bg:#f8f9fb;
+  --card:#ffffff;
+  --accent:#1f2937;
+  --muted:#6b7280;
+  --border:#e5e7eb;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto;
+  background:var(--bg);
+  color:#111827;
+}
+
+/* HEADER */
+header{
+  display:flex; align-items:center; gap:2px;
+  padding:2px 22px;
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:10;
+}
+header h1{margin:0; font-size:18px; font-weight:600}
+header p{margin:0; color:var(--muted); font-size:13px}
+
+.layout{
+  display:grid; grid-template-columns:240px 1fr;
+  gap:20px; padding:20px;
+  max-width:1200px; margin:20px auto;
+}
+
+/* SIDEBAR */
+nav.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px;
+  height:calc(100vh - 110px);
+  overflow:auto;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+}
+
+.menu-item{
+  display:flex; align-items:center; gap:12px;
+  padding:8px 10px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:14px;
+}
+.menu-item:hover{
+  background:#f3f4f6;
+}
+.menu-item.active{
+  background:#111827;
+  color:white;
+}
+
+/* TEXTS */
+h2{margin:0 0 14px 0; font-size:18px; font-weight:600}
+label{font-size:13px; margin-bottom:4px; color:var(--muted)}
+
+/* INPUTS */
+input,select,textarea{
+  width:100%;
+  padding:10px 12px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:white;
+  font-size:14px;
+}
+
+/* BUTTONS */
+.btn{
+  padding:8px 12px; border-radius:6px;
+  border:1px solid var(--border);
+  background:white; cursor:pointer;
+  font-size:14px;
+}
+.btn:hover{background:#f3f4f6}
+
+.btn.primary{
+  background:#111827; color:white;
+  border:1px solid #111827;
+}
+.btn.primary:hover{background:#1f2937}
+
+/* TABLE */
+table{width:100%; border-collapse:collapse; font-size:14px}
+th{
+  text-align:left; padding:8px;
+  border-bottom:1px solid var(--border);
+  color:var(--muted); font-weight:500; font-size:13px;
+}
+td{
+  padding:8px; border-bottom:1px solid var(--border);
+}
+
+/* SMALL ELEMENTS */
+.small{font-size:13px; color:var(--muted)}
+.muted{color:var(--muted); font-size:13px}
+.pill{
+  padding:4px 8px; border-radius:999px;
+  background:#f3f4f6; font-size:12px;
+  color:#111827;
+}
+
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.actions{display:flex;gap:8px}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr}
+  nav.card{height:auto}
+}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;flex-direction:column">
+    <h1>Рынок труда — Прототип</h1>
+    <p>Интерфейс для автоматизации центра занятости — добавление, подбор и отчёты</p>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+    <div class="pill">v1.0</div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="card" aria-label="Главное меню">
+    <div style="margin-bottom:10px;font-weight:700;color:var(--muted)">Меню</div>
+
+    <div id="m-list" role="menu">
+      <div class="menu-item active" data-view="dashboard"><span>🏠</span><span>Панель</span></div>
+      <div class="menu-item" data-view="unemployed"><span>👥</span><span>Безработные</span></div>
+      <div class="menu-item" data-view="employers"><span>🏢</span><span>Предприятия</span></div>
+      <div class="menu-item" data-view="vacancies"><span>📋</span><span>Вакансии</span></div>
+      <div class="menu-item" data-view="match"><span>🔎</span><span>Подбор</span></div>
+      <div class="menu-item" data-view="reports"><span>📊</span><span>Отчёты</span></div>
+      <div class="menu-item" data-view="help"><span>❔</span><span>Справка</span></div>
+    </div>
+
+    <div style="margin-top:18px" class="small muted">
+      Подсказка: данные хранятся локально (localStorage). Можно экспортировать CSV отчёты.
+    </div>
+  </nav>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section class="card" id="view-dashboard">
+      <h2>Панель</h2>
+      <div class="grid-2">
+        <div>
+          <div class="card" style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div class="muted">Всего соискателей</div>
+                <div id="stat-unemployed" style="font-size:20px;font-weight:700">0</div>
+              </div>
+              <div>
+                <div class="muted">Вакансий</div>
+                <div id="stat-vacancies" style="font-size:20px;font-weight:700">0</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="muted">Последние добавленные соискатели</div>
+            <div id="recent-unemployed" style="margin-top:8px"></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:12px">
+            <div class="muted">Последние вакансии</div>
+            <div id="recent-vacancies" style="margin-top:8px"></div>
+          </div>
+
+          <div class="card">
+            <div class="muted">Быстрые действия</div>
+            <div style="margin-top:10px;display:flex;gap:8px">
+              <button class="btn primary" onclick="showView('unemployed')">Добавить соискателя</button>
+              <button class="btn ghost" onclick="showView('vacancies')">Добавить вакансию</button>
+              <button class="btn ghost" onclick="showView('match')">Подбор кандидатов</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UNEMPLOYED -->
+    <section class="card" id="view-unemployed" style="display:none">
+      <h2>Безработные</h2>
+
+      <div class="card" style="margin-bottom:12px">
+        <form id="form-unemployed">
+          <div class="grid-2">
+            <div>
+              <label>ФИО</label>
+              <input type="text" id="u-name" required placeholder="Иванов Иван Иванович">
+            </div>
+            <div>
+              <label>Возраст</label>
+              <input type="number" id="u-age" min="14" max="100" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1">
+              <label>Образование</label>
+              <select id="u-education">
+                <option value="Не указано">Не указано</option>
+                <option>Среднее</option>
+                <option>Среднее специальное</option>
+                <option>Высшее</option>
+              </select>
+            </div>
+            <div style="flex:1">
+              <label>Стаж (лет)</label>
+              <input type="number" id="u-exp" min="0" value="0">
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1">
+              <label>Профессия / специальность</label>
+              <input type="text" id="u-prof" placeholder="Программист, учитель, слесарь">
+            </div>
+            <div style="flex:1">
+              <label>Знание ПК / языков</label>
+              <input type="text" id="u-skills" placeholder="Excel, Английский">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn primary" type="submit">Сохранить соискателя</button>
+            <button class="btn ghost" type="button" onclick="clearUnemployedForm()">Очистить</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <input id="search-unemployed" placeholder="Поиск по имени / профессии" style="padding:8px;border-radius:8px;border:1px solid #e6eef8;flex:1">
+          <div class="actions">
+            <button class="btn ghost" onclick="exportCSV('unemployed')">Экспорт CSV</button>
+            <button class="btn ghost" onclick="seedSample('unemployed')">Добавить образец</button>
+            <button class="btn ghost" onclick="clearAllData()">Очистить всё</button>
+          </div>
+        </div>
+
+        <div style="overflow:auto;max-height:320px">
+          <table id="table-unemployed" aria-live="polite">
+            <thead><tr><th>ФИО</th><th>Возраст</th><th>Профессия</th><th>Опыт</th><th>Образование</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- EMPLOYERS -->
+    <section class="card" id="view-employers" style="display:none">
+      <h2>Предприятия</h2>
+
+      <div class="card" style="margin-bottom:12px">
+        <form id="form-employer">
+          <div class="row">
+            <div style="flex:1">
+              <label>Название предприятия</label>
+              <input type="text" id="e-name" required>
+            </div>
+            <div style="flex:1">
+              <label>Адрес</label>
+              <input type="text" id="e-address">
+            </div>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="btn primary" type="submit">Сохранить предприятие</button>
+            <button class="btn ghost" type="button" onclick="clearEmployerForm()">Очистить</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <input id="search-employers" placeholder="Поиск по названию" style="padding:8px;border-radius:8px;border:1px solid #e6eef8;flex:1">
+          <div class="actions">
+            <button class="btn ghost" onclick="seedSample('employers')">Добавить образцы</button>
+            <button class="btn ghost" onclick="exportCSV('employers')">Экспорт CSV</button>
+          </div>
+        </div>
+
+        <div style="overflow:auto;max-height:320px">
+          <table id="table-employers"><thead><tr><th>Название</th><th>Адрес</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VACANCIES -->
+    <section class="card" id="view-vacancies" style="display:none">
+      <h2>Вакансии</h2>
+
+      <div class="card" style="margin-bottom:12px">
+        <form id="form-vacancy">
+          <div class="row">
+            <div style="flex:1">
+              <label>Должность</label>
+              <input type="text" id="v-title" required placeholder="Менеджер, Программист">
+            </div>
+            <div style="flex:1">
+              <label>Компания (название)</label>
+              <input type="text" id="v-company" required placeholder="ООО Ромашка">
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1">
+              <label>Требования (кратко)</label>
+              <input type="text" id="v-req" placeholder="Образование, языки, навыки">
+            </div>
+            <div style="flex:1">
+              <label>Опыт (лет)</label>
+              <input type="number" id="v-exp" min="0" value="0">
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1">
+              <label>Зарплата (опционально)</label>
+              <input type="text" id="v-salary" placeholder="от 100 000">
+            </div>
+            <div style="flex:1">
+              <label>Дата размещения</label>
+              <input type="date" id="v-date" value="">
+            </div>
+          </div>
+
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="btn primary" type="submit">Добавить вакансию</button>
+            <button class="btn ghost" type="button" onclick="clearVacancyForm()">Очистить</button>
+            <button class="btn ghost" type="button" onclick="seedSample('vacancies')">Образец</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <input id="search-vacancies" placeholder="Поиск по должности / компании" style="padding:8px;border-radius:8px;border:1px solid #e6eef8;flex:1">
+          <div class="actions">
+            <button class="btn ghost" onclick="exportCSV('vacancies')">Экспорт CSV</button>
+          </div>
+        </div>
+
+        <div style="overflow:auto;max-height:360px">
+          <table id="table-vacancies"><thead><tr><th>Должность</th><th>Компания</th><th>Требования</th><th>Опыт</th><th>Дата</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MATCH -->
+    <section class="card" id="view-match" style="display:none">
+      <h2>Подбор вакансий</h2>
+
+      <div class="card" style="margin-bottom:12px">
+        <div class="grid-2">
+          <div>
+            <label>Выберите соискателя</label>
+            <select id="match-unemployed" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8"></select>
+          </div>
+
+          <div>
+            <label>Фильтр по минимальному опыту (лет)</label>
+            <input type="number" id="match-exp" value="0" min="0" style="padding:10px;border-radius:8px;border:1px solid #e6eef8">
+          </div>
+        </div>
+
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="btn primary" onclick="runMatch()">Запустить подбор</button>
+          <button class="btn ghost" onclick="clearMatch()">Очистить</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="muted">Результаты</div>
+        <div id="match-results" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section class="card" id="view-reports" style="display:none">
+      <h2>Отчёты</h2>
+
+      <div class="card" style="margin-bottom:12px">
+        <div class="row">
+          <div style="flex:1">
+            <label>Период с</label>
+            <input type="date" id="r-from">
+          </div>
+          <div style="flex:1">
+            <label>по</label>
+            <input type="date" id="r-to">
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button class="btn primary" onclick="generateReport()">Сформировать отчёт</button>
+          <button class="btn ghost" onclick="exportReportCSV()">Экспорт CSV отчёта</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div id="report-area" class="muted">Отчёт появится здесь.</div>
+      </div>
+    </section>
+
+    <!-- HELP -->
+    <section class="card" id="view-help" style="display:none">
+      <h2>Справка</h2>
+      <div class="muted">
+        Это учебный прототип интерфейса "Рынок труда". <br><br>
+        Что умеет:
+        <ul>
+          <li>Добавлять/редактировать соискателей, предприятия и вакансии.</li>
+          <li>Простой алгоритм подбора вакантных мест по профессии, опыту и навыкам.</li>
+          <li>Экспорт данных в CSV для отчётов.</li>
+        </ul>
+        Данные хранятся в локальном хранилище браузера (localStorage). Для реальной системы нужно подключение к серверу и БД.
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>Прототип интерфейса — учебная работа. Данные не отправляются на сервер.</footer>
+
+<script>
+/* --- Utilities & Storage --- */
+const LS_KEY = 'job_market_data_v1';
+
+function loadData(){
+  const raw = localStorage.getItem(LS_KEY);
+  if(!raw) {
+    const init = {unemployed:[], employers:[], vacancies:[]};
+    localStorage.setItem(LS_KEY, JSON.stringify(init));
+    return init;
+  }
+  try { return JSON.parse(raw); } catch(e){ return {unemployed:[], employers:[], vacancies:[]} }
+}
+function saveData(data){
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+}
+
+/* --- UI navigation --- */
+function showView(view){
+  document.querySelectorAll('section.card').forEach(s=>s.style.display='none');
+  const el = document.getElementById('view-'+view);
+  if(el) el.style.display='block';
+  // menu
+  document.querySelectorAll('.menu-item').forEach(mi=>mi.classList.toggle('active', mi.dataset.view===view));
+  // update some dynamic selects when showing specific views
+  if(view==='match') refreshMatchSelect();
+  if(view==='dashboard') renderDashboard();
+}
+document.querySelectorAll('.menu-item').forEach(mi=>{
+  mi.addEventListener('click', ()=> showView(mi.dataset.view));
+});
+
+/* --- Rendering tables --- */
+// Helper to get today's date string yyyy-mm-dd
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+function renderUnemployed(filter){
+  const data = loadData();
+  const tbody = document.querySelector('#table-unemployed tbody');
+  tbody.innerHTML = '';
+  const q = filter ? filter.toLowerCase() : '';
+  data.unemployed.forEach((u, idx) => {
+    if(q){
+      const name = (u.name||'').toLowerCase();
+      const prof = (u.prof||'').toLowerCase();
+      if(!name.includes(q) && !prof.includes(q)) return;
+    }
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(u.name||'')}</td>
+      <td>${u.age||''}</td>
+      <td>${escapeHtml(u.prof||'')}</td>
+      <td>${u.exp||0} г.</td>
+      <td>${escapeHtml(u.education||'')}</td>
+      <td style="text-align:right">
+        <button class="btn ghost" onclick="editUnemployed(${idx})">Ред.</button>
+        <button class="btn" style="background:var(--danger);color:white" onclick="deleteUnemployed(${idx})">Удал.</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  // recent
+  const recentList = data.unemployed.slice(-3).reverse();
+  const recent = recentList.map(u=>`<div class="small">${escapeHtml(u.name||'')} — ${escapeHtml(u.prof||'')}</div>`).join('');
+  document.getElementById('recent-unemployed').innerHTML = recent || '<div class="muted">Нет данных</div>';
+  document.getElementById('stat-unemployed').textContent = data.unemployed.length;
+}
+
+function renderEmployers(filter){
+  const data = loadData();
+  const tbody = document.querySelector('#table-employers tbody');
+  tbody.innerHTML = '';
+  const q = filter ? filter.toLowerCase() : '';
+  data.employers.forEach((e, idx)=>{
+    if(q && !(e.name||'').toLowerCase().includes(q)) return;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(e.name)}</td><td>${escapeHtml(e.address||'')}</td>
+      <td style="text-align:right">
+        <button class="btn ghost" onclick="editEmployer(${idx})">Ред.</button>
+        <button class="btn" style="background:var(--danger);color:white" onclick="deleteEmployer(${idx})">Удал.</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderVacancies(filter){
+  const data = loadData();
+  const tbody = document.querySelector('#table-vacancies tbody');
+  tbody.innerHTML = '';
+  const q = filter ? filter.toLowerCase() : '';
+  data.vacancies.forEach((v, idx)=>{
+    if(q){
+      const title = (v.title||'').toLowerCase();
+      const comp = (v.company||'').toLowerCase();
+      if(!title.includes(q) && !comp.includes(q)) return;
+    }
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(v.title)}</td><td>${escapeHtml(v.company)}</td><td>${escapeHtml(v.req||'')}</td><td>${v.exp||0}</td><td>${v.date||''}</td>
+      <td style="text-align:right">
+        <button class="btn ghost" onclick="editVacancy(${idx})">Ред.</button>
+        <button class="btn" style="background:var(--danger);color:white" onclick="deleteVacancy(${idx})">Удал.</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  // recent vacancies
+  const recentList = data.vacancies.slice(-3).reverse();
+  const recent = recentList.map(v=>`<div class="small">${escapeHtml(v.title||'')} — ${escapeHtml(v.company||'')}</div>`).join('');
+  document.getElementById('recent-vacancies').innerHTML = recent || '<div class="muted">Нет данных</div>';
+  document.getElementById('stat-vacancies').textContent = data.vacancies.length;
+}
+
+/* --- Forms handling --- */
+document.getElementById('form-unemployed').addEventListener('submit', function(e){
+  e.preventDefault();
+  const data = loadData();
+  const u = {
+    name: document.getElementById('u-name').value.trim(),
+    age: Number(document.getElementById('u-age').value)||'',
+    education: document.getElementById('u-education').value,
+    exp: Number(document.getElementById('u-exp').value)||0,
+    prof: document.getElementById('u-prof').value.trim(),
+    skills: document.getElementById('u-skills').value.trim(),
+    created: new Date().toISOString()
+  };
+  // if editing?
+  if(document.getElementById('form-unemployed').dataset.editIndex){
+    const idx = Number(document.getElementById('form-unemployed').dataset.editIndex);
+    if(Number.isFinite(idx) && data.unemployed[idx]) data.unemployed[idx] = u;
+    delete document.getElementById('form-unemployed').dataset.editIndex;
+  } else data.unemployed.push(u);
+  saveData(data);
+  renderUnemployed(document.getElementById('search-unemployed').value);
+  renderMatchSelect();
+  this.reset();
+});
+
+document.getElementById('form-employer').addEventListener('submit', function(e){
+  e.preventDefault();
+  const data = loadData();
+  const eObj = {
+    name: document.getElementById('e-name').value.trim(),
+    address: document.getElementById('e-address').value.trim(),
+    created: new Date().toISOString()
+  };
+  if(this.dataset.editIndex){
+    const idx = Number(this.dataset.editIndex);
+    if(Number.isFinite(idx) && data.employers[idx]) data.employers[idx] = eObj;
+    delete this.dataset.editIndex;
+  } else data.employers.push(eObj);
+  saveData(data);
+  renderEmployers(document.getElementById('search-employers').value);
+  this.reset();
+});
+document.getElementById('form-vacancy').addEventListener('submit', function(e){
+  e.preventDefault();
+  const data = loadData();
+  const dateVal = document.getElementById('v-date').value || todayISO();
+  const v = {
+    title: document.getElementById('v-title').value.trim(),
+    company: document.getElementById('v-company').value.trim(),
+    req: document.getElementById('v-req').value.trim(),
+    exp: Number(document.getElementById('v-exp').value)||0,
+    salary: document.getElementById('v-salary').value.trim(),
+    date: dateVal,
+    created: new Date().toISOString()
+  };
+  if(this.dataset.editIndex){
+    const idx = Number(this.dataset.editIndex);
+    if(Number.isFinite(idx) && data.vacancies[idx]) data.vacancies[idx] = v;
+    delete this.dataset.editIndex;
+  } else data.vacancies.push(v);
+  saveData(data);
+  renderVacancies(document.getElementById('search-vacancies').value);
+  renderMatchSelect();
+  this.reset();
+});
+
+/* --- Edit / Delete functions --- */
+function editUnemployed(idx){
+  const data = loadData();
+  const u = data.unemployed[idx];
+  if(!u) return alert('Не найдено');
+  document.getElementById('u-name').value = u.name;
+  document.getElementById('u-age').value = u.age;
+  document.getElementById('u-education').value = u.education;
+  document.getElementById('u-exp').value = u.exp;
+  document.getElementById('u-prof').value = u.prof;
+  document.getElementById('u-skills').value = u.skills;
+  document.getElementById('form-unemployed').dataset.editIndex = idx;
+  showView('unemployed');
+}
+function deleteUnemployed(idx){
+  if(!confirm('Удалить соискателя?')) return;
+  const data = loadData();
+  if(idx<0 || idx>=data.unemployed.length) return;
+  data.unemployed.splice(idx,1);
+  saveData(data);
+  renderUnemployed(document.getElementById('search-unemployed').value);
+  renderMatchSelect();
+}
+
+function editEmployer(idx){
+  const data = loadData();
+  const e = data.employers[idx];
+  if(!e) return alert('Не найдено');
+  document.getElementById('e-name').value = e.name;
+  document.getElementById('e-address').value = e.address;
+  document.getElementById('form-employer').dataset.editIndex = idx;
+  showView('employers');
+}
+function deleteEmployer(idx){
+  if(!confirm('Удалить предприятие?')) return;
+  const data = loadData();
+  if(idx<0 || idx>=data.employers.length) return;
+  data.employers.splice(idx,1);
+  saveData(data);
+  renderEmployers(document.getElementById('search-employers').value);
+}
+
+function editVacancy(idx){
+  const data = loadData();
+  const v = data.vacancies[idx];
+  if(!v) return alert('Не найдено');
+  document.getElementById('v-title').value = v.title;
+  document.getElementById('v-company').value = v.company;
+  document.getElementById('v-req').value = v.req;
+  document.getElementById('v-exp').value = v.exp;
+  document.getElementById('v-salary').value = v.salary;
+  document.getElementById('v-date').value = v.date || todayISO();
+  document.getElementById('form-vacancy').dataset.editIndex = idx;
+  showView('vacancies');
+}
+function deleteVacancy(idx){
+  if(!confirm('Удалить вакансию?')) return;
+  const data = loadData();
+  if(idx<0 || idx>=data.vacancies.length) return;
+  data.vacancies.splice(idx,1);
+  saveData(data);
+  renderVacancies(document.getElementById('search-vacancies').value);
+  renderMatchSelect();
+}
+
+/* --- Matching algorithm (simple heuristic) --- */
+function refreshMatchSelect(){
+  const sel = document.getElementById('match-unemployed');
+  const data = loadData();
+  sel.innerHTML = '<option value="">--выберите--</option>';
+  data.unemployed.forEach((u, i) => {
+    const txt = `${u.name} — ${u.prof||'не указана'}`;
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = txt;
+    sel.appendChild(opt);
+  });
+}
+
+function runMatch(){
+  const idx = document.getElementById('match-unemployed').value;
+  if(idx===''){ alert('Выберите соискателя'); return; }
+  const minExp = Number(document.getElementById('match-exp').value)||0;
+  const data = loadData();
+  const u = data.unemployed[Number(idx)];
+  if(!u) return;
+  // compute score: match by title/prof substring, experience, skills & education
+  const results = data.vacancies.map((v, i) => {
+    let score = 0;
+    // profession/title match
+    const prof = (u.prof||'').toLowerCase();
+    const title = (v.title||'').toLowerCase();
+    if(prof && title && (title.includes(prof) || prof.includes(title))) score += 50;
+    // skills in req
+    const skills = (u.skills||'').toLowerCase();
+    const req = (v.req||'').toLowerCase();
+    if(skills && req){
+      const tokens = skills.split(/[,;]+|\s+/).filter(Boolean);
+      tokens.forEach(t => { if(req.includes(t)) score += 8; });
+    }
+    // experience: if candidate exp >= vacancy exp
+    if(u.exp >= v.exp) score += 20; else {
+      const diff = v.exp - u.exp;
+      score += Math.max(0, 20 - diff*5); // penalize
+    }
+    // education quick match (not strict)
+    if(u.education && v.req && v.req.toLowerCase().includes(u.education.toLowerCase())) score += 6;
+    // filter by minExp
+    if(u.exp < minExp) score -= 100; // exclude
+    return {v, idx:i, score: Math.max(0, Math.round(score))};
+  }).filter(r=>r.score>0).sort((a,b)=>b.score-a.score);
+
+  const out = document.getElementById('match-results');
+  if(results.length===0){ out.innerHTML = '<div class="muted">Результатов не найдено</div>'; return; }
+  out.innerHTML = '<table><thead><tr><th>Вакансия</th><th>Компания</th><th>Требования</th><th>Опыт</th><th>Совпадение</th><th></th></tr></thead><tbody></tbody></table>';
+  const tbody = out.querySelector('tbody');
+  results.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(r.v.title)}</td><td>${escapeHtml(r.v.company)}</td><td>${escapeHtml(r.v.req)}</td><td>${r.v.exp}</td><td><span class="match-score">${r.score}%</span></td>
+      <td style="text-align:right"><button class="btn primary" onclick="applyVacancy(${r.idx}, ${Number(idx)})">Отклик</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* --- Simulate applying (local only) --- */
+function applyVacancy(vIdx, uIdx){
+  const data = loadData();
+  const v = data.vacancies[vIdx];
+  const u = data.unemployed[uIdx];
+  alert(`Отклик отправлен:\n${u.name} → ${v.title} (${v.company})\n(В прототипе отклик только моделируется)`);
+}
+
+/* --- Reports --- */
+function generateReport(){
+  const from = document.getElementById('r-from').value;
+  const to = document.getElementById('r-to').value;
+  const data = loadData();
+  let html = '<div class="muted">';
+  html += `<div>Период: ${from || '—'} — ${to || '—'}</div>`;
+  html += `<div style="margin-top:8px">Всего соискателей: ${data.unemployed.length}</div>`;
+  html += `<div>Всего вакансий: ${data.vacancies.length}</div>`;
+  // grouped by profession (top 8)
+  const profCount = {};
+  data.unemployed.forEach(u => {
+    const key = (u.prof||'Не указана').trim();
+    profCount[key] = (profCount[key]||0) + 1;
+  });
+  const top = Object.entries(profCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  html += '<div style="margin-top:8px">Топ профессий соискателей:<ul>';
+  top.forEach(t=> html += `<li>${escapeHtml(t[0])}: ${t[1]}</li>`);
+  html += '</ul></div>';
+  html += '</div>';
+  document.getElementById('report-area').innerHTML = html;
+}
+function exportReportCSV(){
+  const data = loadData();
+  const rows = [['Тип','Название','Дополнительно']];
+  rows.push(['Соискателей', data.unemployed.length, '']);
+  rows.push(['Вакансий', data.vacancies.length, '']);
+  rows.push([]);
+  rows.push(['Профессия','Кол-во']);
+  const profCount = {};
+  data.unemployed.forEach(u => {
+    const key = (u.prof||'Не указана').trim();
+    profCount[key] = (profCount[key]||0) + 1;
+  });
+  Object.entries(profCount).forEach(e => rows.push([e[0], e[1]]));
+  downloadCSV(rows, 'report_job_market.csv');
+}
+
+/* --- Export CSV generic --- */
+function exportCSV(type){
+  const data = loadData();
+  const rows = [];
+  if(type==='unemployed'){
+    rows.push(['ФИО','Возраст','Профессия','Опыт','Образование','Навыки']);
+    data.unemployed.forEach(u => rows.push([u.name,u.age,u.prof,u.exp,u.education,u.skills]));
+  } else if(type==='employers'){
+    rows.push(['Название','Адрес']);
+    data.employers.forEach(e => rows.push([e.name,e.address]));
+  } else if(type==='vacancies'){
+    rows.push(['Должность','Компания','Требования','Опыт','Зарплата','Дата']);
+    data.vacancies.forEach(v => rows.push([v.title,v.company,v.req,v.exp,v.salary,v.date]));
+  }
+  downloadCSV(rows, `${type}.csv`);
+}
+function downloadCSV(rows, filename){
+  const csv = rows.map(r => r.map(cell => `"${(cell||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* --- Helpers --- */
+function escapeHtml(s){ return s ? s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) : ''; }
+function clearUnemployedForm(){ document.getElementById('form-unemployed').reset(); delete document.getElementById('form-unemployed').dataset.editIndex; }
+function clearEmployerForm(){ document.getElementById('form-employer').reset(); delete document.getElementById('form-employer').dataset.editIndex; }
+function clearVacancyForm(){ document.getElementById('form-vacancy').reset(); delete document.getElementById('form-vacancy').dataset.editIndex; }
+function clearMatch(){ document.getElementById('match-unemployed').value=''; document.getElementById('match-results').innerHTML=''; }
+
+/* --- Seed sample data for quick demo --- */
+function seedSample(type){
+  const d = loadData();
+  if(type==='unemployed'){
+    d.unemployed.push(
+      {name:'Анна Петрова', age:28, education:'Высшее', exp:2, prof:'Менеджер', skills:'Excel, Английский'},
+      {name:'Иван Иванов', age:35, education:'Среднее специальное', exp:8, prof:'Слесарь', skills:'Ремонт'},
+      {name:'Ольга Смирнова', age:24, education:'Высшее', exp:1, prof:'Программист', skills:'JavaScript, Английский'}
+    );
+  } else if(type==='employers'){
+    d.employers.push({name:'ООО Ромашка', address:'г. Алматы, ул. Ленина 10'},{name:'ТК Транспорт', address:'г. Нур-Султан, пр. Назарбаева 5'});
+  } else if(type==='vacancies'){
+    d.vacancies.push(
+      {title:'Менеджер по продажам', company:'ООО Ромашка', req:'Опыт продаж, ПК, Excel', exp:1, salary:'от 120000', date:todayISO()},
+      {title:'Слесарь-ремонтник', company:'ТК Транспорт', req:'Опыт работы, инструмент', exp:3, salary:'от 90000', date:todayISO()},
+      {title:'Frontend developer', company:'IT Solutions', req:'JavaScript, HTML, CSS, Английский', exp:1, salary:'150000', date:todayISO()}
+    );
+  }
+  saveData(d);
+  renderAll();
+}
+
+/* --- Misc UI wiring --- */
+document.getElementById('search-unemployed').addEventListener('input', e=> renderUnemployed(e.target.value));
+document.getElementById('search-employers').addEventListener('input', e=> renderEmployers(e.target.value));
+document.getElementById('search-vacancies').addEventListener('input', e=> renderVacancies(e.target.value));
+
+/* Clear all storage (dev) */
+function clearAllData(){
+  if(!confirm('Очистить все данные и localStorage?')) return;
+  localStorage.removeItem(LS_KEY);
+  renderAll();
+}
+
+/* --- Initial render --- */
+function renderAll(){
+  renderUnemployed();
+  renderEmployers();
+  renderVacancies();
+  renderMatchSelect();
+  renderDashboard();
+}
+function renderMatchSelect(){
+  refreshMatchSelect();
+}
+function renderDashboard(){
+  // update recent + stats already handled by render functions
+  renderUnemployed();
+  renderVacancies();
+}
+renderAll();
+
+</script>
+<!-- UNIVERSAL MODAL -->
+<div class="modal fade" id="myModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">Модал терезе</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body" id="modalBody">
+        Мұнда кез келген текст немесе форма шығара аласың.
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Жабу</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
